@@ -1,3 +1,9 @@
+# User define
+*.swp
+.DS_Store
+Makefile
+build/
+
 # Prerequisites
 *.d
 
