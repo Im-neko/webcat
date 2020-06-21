@@ -18,12 +18,12 @@ void GetThreadFunc(const char* hostname) {
     printf("url: %s\n", hostname);
     int sock;
     char buf[32];
-    bool isHeaderReadDone = false;
 
     sock = Socket::GetSock(hostname);
     std::cout << "sock: " << sock << std::endl;
 
     memset(buf, 0, sizeof(buf));
+    snprintf(buf, sizeof(buf), "GET / HTTP/1.0\r\n\r\n");
 
     int idx = write(sock, buf, (int)strlen(buf));
     if (idx < 0) {
@@ -38,7 +38,7 @@ void GetThreadFunc(const char* hostname) {
             perror("read");
             return;
         }
-        std::cout << buf;
+
         g_Res.m_RawText += buf; 
     }
     g_Res.m_Status = true;
@@ -49,7 +49,20 @@ void GetThreadFunc(const char* hostname) {
 Http::Response* Http::Get(const char* url) {
     std::thread th(GetThreadFunc, url);
     th.join();
-    std::vector<std::string>* pElems = SplitStr(g_Res.m_RawText, R"((\n)\w+)");
+    std::vector<std::string> elems = SplitStr(g_Res.m_RawText, '\n');
+    bool isHeaderDone = false;
+    for (int i = 0; i < elems.size(); i++ ) {
+        if (elems[i] == "\r\n") {
+            isHeaderDone = true;
+            continue;
+        }
+        if (isHeaderDone) {
+            g_Res.m_BodyText += elems[i]; 
+        } else {
+            g_Res.m_HeaderText += elems[i]; 
+        }
+    }
+
     return &g_Res;
 }
 

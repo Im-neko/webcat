@@ -8,6 +8,7 @@ set(CMAKE_CXX_FLAGS "-pthread")
 
 add_subdirectory(Http)
 add_subdirectory(lib)
+add_subdirectory(Parser)
 add_executable( main_cpp main.cpp )
-target_link_libraries(main_cpp Http Lib)
+target_link_libraries(main_cpp Http Lib Parser)
 
