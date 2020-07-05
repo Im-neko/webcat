@@ -3,11 +3,8 @@
 .DS_Store
 Makefile
 build/
-<<<<<<< HEAD
 build-Gui-Desktop_x86_darwin_generic_mach_o_64bit-Debug/
 CmakeLists.txt.user
-=======
->>>>>>> 15a4dd66cc3dbf52f0bfb459aee2bedac0477637
 
 # Prerequisites
 *.d
