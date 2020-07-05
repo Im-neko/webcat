@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.1)
 add_library(
-  Http STATIC 
-  Get.cpp 
-  Socket.cpp
+  Lib STATIC 
+  Split.cpp
 )
+

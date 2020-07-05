@@ -4,9 +4,19 @@ project(webcat)
 set(CMAKE_C_COMPILER "gcc")
 set(CMAKE_CXX_COMPILER "g++")
 set(CMAKE_CXX_FLAGS "-std=c++11")
+<<<<<<< HEAD
 
 add_subdirectory(Http)
 
 add_executable( main_cpp main.cpp )
 target_link_libraries(main_cpp Http)
+=======
+set(CMAKE_CXX_FLAGS "-pthread")
+
+add_subdirectory(Http)
+add_subdirectory(lib)
+add_subdirectory(Parser)
+add_executable( main_cpp main.cpp )
+target_link_libraries(main_cpp Http Lib Parser)
+>>>>>>> 15a4dd66cc3dbf52f0bfb459aee2bedac0477637
 

@@ -1,70 +1,25 @@
 #include <iostream>
-#include <string>
+#include <cstring>
 #include <thread>
-#include <mutex>
 #include <vector>
 #include <unistd.h>
 #include <fcntl.h>
 #include <stdio.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <netdb.h>
 
-
-
+#include "../lib/Split.hpp"
 #include "Fetch.hpp"
 
 
+// TODO: Generate new instance and set heap every request
+Http::Response g_Res;
+
 void GetThreadFunc(const char* hostname) {
     printf("url: %s\n", hostname);
-    struct sockaddr_in server;
     int sock;
     char buf[32];
-    unsigned int** pAddr;
 
-    sock = socket(AF_INET, SOCK_STREAM, 0);
-    if (sock < 0 ) {
-        perror("socket");
-        return;
-    }
-
-    server.sin_family = AF_INET;
-    server.sin_port = htons(80);
-
-    server.sin_addr.s_addr = inet_addr(hostname);
-    if(server.sin_addr.s_addr == 0xffffffff) {
-        struct hostent *pHost;
-        pHost = gethostbyname(hostname);
-        if(pHost == NULL) {
-            if (h_errno == HOST_NOT_FOUND) {
-                printf("404 not found: %s\n", hostname);
-            } else {
-                printf("%s: %s\n", hstrerror(h_errno), hostname);
-            }
-            return;
-        }
-
-        pAddr = (unsigned int **)pHost->h_addr_list;
-        while (*pAddr != NULL) {
-            server.sin_addr.s_addr = *(*pAddr);
-
-            if(connect(sock, (struct sockaddr*)&server, sizeof(server)) == 0) {
-                break;
-            }
-        }
-
-        if (*pAddr == NULL) {
-            perror("connect");
-            return;
-        }
-    } else {
-        if (connect(sock, (struct sockaddr*)&server, sizeof(server)) != 0) {
-            perror("connect");
-            return;
-        }
-    }
+    sock = Socket::GetSock(hostname);
+    std::cout << "sock: " << sock << std::endl;
 
     memset(buf, 0, sizeof(buf));
     snprintf(buf, sizeof(buf), "GET / HTTP/1.0\r\n\r\n");
@@ -82,9 +37,10 @@ void GetThreadFunc(const char* hostname) {
             perror("read");
             return;
         }
-        write(1, buf, idx);
-    }
 
+        g_Res.m_RawText += buf; 
+    }
+    g_Res.m_Status = true;
     close(sock);
     return;
 }
@@ -92,10 +48,21 @@ void GetThreadFunc(const char* hostname) {
 Http::Response* Http::Get(const char* url) {
     std::thread th(GetThreadFunc, url);
     th.join();
-    auto res = new Http::Response;
-    res->m_Status = true;
-    res->m_BodyText = "bodyText";
-    return res;
+    std::vector<std::string> elems = SplitStr(g_Res.m_RawText, '\n');
+    bool isHeaderDone = false;
+    for (int i = 0; i < elems.size(); i++ ) {
+        if (elems[i] == "\r\n") {
+            isHeaderDone = true;
+            continue;
+        }
+        if (isHeaderDone) {
+            g_Res.m_BodyText += elems[i]; 
+        } else {
+            g_Res.m_HeaderText += elems[i]; 
+        }
+    }
+
+    return &g_Res;
 }
 
 
