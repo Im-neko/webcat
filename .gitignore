@@ -4,6 +4,7 @@
 Makefile
 build/
 build-Gui-Desktop_x86_darwin_generic_mach_o_64bit-Debug/
+CmakeLists.txt.user
 
 # Prerequisites
 *.d
